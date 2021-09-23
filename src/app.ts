@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
+import process from 'node:process';
+import { resolve } from 'node:path';
 const config = JSON.parse(readFileSync('./config.json', 'utf8'));
 
-import process from 'node:process';
 import { CommandContext, GatewayServer, InteractionRequestData, SlashCreator, Response } from "slash-create";
 import { Client } from 'eris';
 import CommandService from './services/command';
@@ -24,7 +25,7 @@ const server = new GatewayServer((handler) => {
 })
 
 creator
-  .registerCommandsIn('./commands')
+  .registerCommandsIn(resolve(process.cwd(), './dist/commands'))
   .withServer(server)
 
 creator.on('commandInteraction', async (interaction) => {
