@@ -8,7 +8,7 @@ import { Client } from 'eris';
 import CommandService from './services/command';
 import { compile, transform } from 'tempura';
 
-const client = new Client(process.env.DISCORD_TOKEN!);
+const client = new Client(config.token);
 
 const creator = new SlashCreator({
   applicationID: config.applicationID,
