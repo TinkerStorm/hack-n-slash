@@ -1,7 +1,7 @@
 import { ApplicationCommandType, Command, CommandContext, CommandOptionType, Permissions, SlashCreator } from "slash-create";
 import { AutocompleteContext } from "slash-create/lib/structures/interfaces/autocompleteContext";
 import CommandService from "../services/command";
-import { Command as CommandPayload } from "../util/db";
+import { Command as CommandPayload } from "../util/types";
 
 const humanizedCommandTypes = [null, "Chat", "User", "Message"];
 
@@ -174,7 +174,7 @@ export default class CustomCommandManager extends Command {
       }
     } catch (_e) { }
 
-    const payload: Omit<CommandPayload, '_id' | '_rev' | 'key'> = {
+    const payload: Omit<CommandPayload, 'id'> = {
       name, content, type,
       description: type === ApplicationCommandType.CHAT_INPUT ? description : undefined,
       guildID: ctx.guildID!
@@ -213,7 +213,7 @@ export default class CustomCommandManager extends Command {
       return `❌ \`${name}\` not found!`;
     }
 
-    await this.service.delete(command._id);
+    await this.service.delete(command);
     return `✅ \`${name}\` deleted`;
   }
 
@@ -223,7 +223,7 @@ export default class CustomCommandManager extends Command {
       return ":x: No commands found.";
     }
 
-    const commandList = commands.map(c => `${c.name} (${humanizedCommandTypes[c.type]} \`${c._id} - ${c._rev}\`)${c.description ? ` - ${c.description}` : ''}`);
+    const commandList = commands.map(c => `${c.name} (${humanizedCommandTypes[c.type]} \`${c.id}\`)${c.description ? ` - ${c.description}` : ''}`);
     await ctx.send({
       embeds: [{
         title: `Custom Commands`,
@@ -246,7 +246,7 @@ export default class CustomCommandManager extends Command {
       }],
       file: {
         file: Buffer.from(command.content.trim(), 'utf8'),
-        name: `${command.name}-${command._rev}.hbs`
+        name: `${command.name}.hbs`
       }
     });
   }

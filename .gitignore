@@ -119,4 +119,4 @@ dist
 
 # Env specific
 config.json
-/commands
+/data

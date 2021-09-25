@@ -3,11 +3,12 @@ import process from 'node:process';
 import { resolve } from 'node:path';
 import util from 'node:util';
 
-import { CommandContext, GatewayServer, InteractionRequestData, SlashCreator, Response } from "slash-create";
+import { CommandContext, GatewayServer, InteractionRequestData, SlashCreator, Response, ApplicationCommandType } from "slash-create";
 import { Client } from 'eris';
-import Mustache from 'mustache';
+import R from 'ramda';
 
 import CommandService from './services/command';
+import TemplateEngine from './util/template-engine';
 const config = JSON.parse(readFileSync('./config.json', 'utf8'));
 
 const client = new Client(config.token);
@@ -20,6 +21,7 @@ const creator = new SlashCreator({
 })
 
 const service = new CommandService(creator);
+const engine = new TemplateEngine();
 
 creator
   .registerCommandsIn(resolve(process.cwd(), './dist/commands'))
@@ -44,10 +46,22 @@ creator.on('commandInteraction', async (interaction, respond, webserverMode) => 
 
   try {
     const command = await service.getOne(ctx.commandID);
+
+    if (!command) {
+      return `:x: Command not found.`;
+    }
     // console.log(command._id, command.key, command.description);
 
-    const content = Mustache.render(command.content, {ctx}, {}, {
-      escape: (text) => text
+    // omit methods that are not meant to be used by the user
+
+    const content = await engine.render(command.content, {
+      data: ctx.data,
+      options: ctx.options,
+      member: ctx.member,
+
+      // subcommands: ctx.subcommands,
+      targetMessage: command.type === ApplicationCommandType.MESSAGE ? R.omit(["edit", "delete"], ctx.targetMessage) : null,
+      targetMember: command.type === ApplicationCommandType.USER ? ctx.targetMember : null
     });
     // console.log(content);
     await ctx.send(content);
