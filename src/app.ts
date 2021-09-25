@@ -44,15 +44,15 @@ creator.on('commandInteraction', async (interaction, respond, webserverMode) => 
 
   try {
     const command = await service.getOne(ctx.commandID);
-    console.log(command._id, command.key, command.description);
+    // console.log(command._id, command.key, command.description);
 
     const content = Mustache.render(command.content, {ctx}, {}, {
       escape: (text) => text
     });
-    console.log(content);
+    // console.log(content);
     await ctx.send(content);
   } catch (e) {
-    console.log(e);
+    // console.log(e);
     await ctx.send(':x: Sorry, an error occurred.\n```' + e + '```');
   }
 });
