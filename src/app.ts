@@ -58,7 +58,7 @@ creator.on('commandInteraction', async (interaction, respond, webserverMode) => 
 });
 
 client.on('messageCreate', async (msg) => {
-  if (msg.content.startsWith('!eval')) {
+  if (msg.content.startsWith('!eval') && config.admins.includes(msg.author.id)) {
     const code = msg.content.substring(6);
     try {
       let start = msg.createdAt;
