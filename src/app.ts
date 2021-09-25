@@ -17,37 +17,28 @@ const creator = new SlashCreator({
 
 const service = new CommandService(creator);
 
-const server = new GatewayServer((handler) => {
-  client.on('rawWS', (event) => {
-    if (event.t === 'INTERACTION_CREATE')
-      handler(event.d as InteractionRequestData);
-  });
-})
-
 creator
   .registerCommandsIn(resolve(process.cwd(), './dist/commands'))
-  .withServer(server)
+  .withServer(new GatewayServer((handler) => {
+    client.on('rawWS', (event) => {
+      if (event.t === 'INTERACTION_CREATE')
+        handler(event.d as InteractionRequestData);
+    });
+  }))
 
-creator.on('commandInteraction', async (interaction) => {
-  const ctx = new CommandContext(
-    creator,
-    interaction,
-    async (response: Response) => {
-      await creator.api.interactionCallback(interaction.id, interaction.token, response.body);
-    },
-    server.isWebserver
-  );
+//creator.on('commandInteraction', async (interaction, respond, webserverMode) => {
+//  const ctx = new CommandContext(creator, interaction, respond, webserverMode);
 
-  // determine if a custom command can be used for this interaction
-  const command = await service.getOne(ctx.commandID);
-  if (ctx.guildID && command) {
-    const script = compile(transform(command.content, {format: "cjs"}));
+//  // determine if a custom command can be used for this interaction
+//  const command = await service.getOne(ctx.commandID);
+//  if (ctx.guildID && command) {
+//    const script = compile(transform(command.content, {format: "cjs"}));
 
-    const result = await script(ctx);
+//    const result = await script(ctx);
 
-    ctx.send(result);
-  }
-});
+//    ctx.send(result);
+//  }
+//});
 
-creator.startServer();
+// creator.startServer();
 client.connect();

@@ -520,10 +520,10 @@ safe-buffer@~5.2.0:
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.2.1.tgz#1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6"
   integrity sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==
 
-slash-create@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/slash-create/-/slash-create-4.1.1.tgz#a2348c112bde56bbad1cb572d02e10ff56c4c3d9"
-  integrity sha512-drbYQF4Hv/+C2x2eDcgoy7KLPt6+PW606tbWl/e5o9Qdk1jvh9bbGDSlJcSTFrLMHTtGLYq3QNXZZdNd/oJy3Q==
+slash-create@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/slash-create/-/slash-create-4.2.0.tgz#d17bff0874466b107f0dd6533b9eb14581ae088c"
+  integrity sha512-6lT7fsRh6J0ye/YmPBzTGSw2m/KSueuRGfEOMkUBhYLroC1FaDsjFiIjUn8v7YUTpxtom3ayR8dHY2n/RRUPgw==
   dependencies:
     "@discordjs/collection" "^0.2.1"
     eventemitter3 "^4.0.7"

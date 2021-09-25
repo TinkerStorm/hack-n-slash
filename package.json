@@ -13,7 +13,7 @@
     "dotenv": "^10.0.0",
     "eris": "^0.15.1",
     "pouchdb": "^7.2.2",
-    "slash-create": "^4.1.1",
+    "slash-create": "^4.2.0",
     "tempura": "^0.3.2"
   },
   "devDependencies": {
