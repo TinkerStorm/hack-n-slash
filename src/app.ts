@@ -34,6 +34,14 @@ creator.on('commandInteraction', async (interaction, respond, webserverMode) => 
   const ctx = new CommandContext(creator, interaction, respond, webserverMode);
   await ctx.defer();
   // determine if a custom command can be used for this interaction
+  const hasCoreCommand = creator.commands.has(`${ctx.commandType}:global:${ctx.commandName}`);
+
+  if (hasCoreCommand) {
+    const command = creator.commands.get(`${ctx.commandType}:global:${ctx.commandName}`);
+    await command!.run(ctx);
+    return;
+  }
+
   try {
     const command = await service.getOne(ctx.commandID);
     console.log(command._id, command.key, command.description);
@@ -43,19 +51,10 @@ creator.on('commandInteraction', async (interaction, respond, webserverMode) => 
     });
     console.log(content);
     await ctx.send(content);
-    return;
   } catch (e) {
     console.log(e);
-    // attempt using the default command
-    const command = creator.commands
-      .find((value) => value.keyName === `${interaction.data.type}:global:${interaction.data.name}`);
-    if (command) {
-      await command.run(ctx);
-      return;
-    }
+    await ctx.send(':x: Sorry, an error occurred.\n```' + e + '```');
   }
-
-  await ctx.send('❌ Invalid interaction.');
 });
 
 client.on('messageCreate', async (msg) => {
