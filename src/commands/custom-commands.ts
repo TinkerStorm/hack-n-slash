@@ -223,7 +223,7 @@ export default class CustomCommandManager extends Command {
       return ":x: No commands found.";
     }
 
-    const commandList = commands.map(c => `${c.name} (\`${c._id} - ${c._rev}\`)${c.description ? ` - ${c.description}` : ''}`);
+    const commandList = commands.map(c => `${c.name} (${humanizedCommandTypes[c.type]} \`${c._id} - ${c._rev}\`)${c.description ? ` - ${c.description}` : ''}`);
     await ctx.send({
       embeds: [{
         title: `Custom Commands`,
