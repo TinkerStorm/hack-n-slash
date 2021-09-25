@@ -14,10 +14,10 @@ export default class CustomCommandManager extends Command {
       type: ApplicationCommandType.CHAT_INPUT,
       requiredPermissions: ["MANAGE_GUILD"],
       options: [
-        { // create / update a command
-          name: "set",
+        {
+          name: "create",
           type: CommandOptionType.SUB_COMMAND,
-          description: "Create or update a command",
+          description: "Create new a command",
           options: [{
             name: "name",
             type: CommandOptionType.STRING,
@@ -31,7 +31,7 @@ export default class CustomCommandManager extends Command {
           }, {
             name: "description",
             type: CommandOptionType.STRING,
-            description: "The description of the command",
+            description: "The description of the command (only required for **Chat Command** type).",
             required: true
           }, {
             name: "type",
@@ -52,6 +52,28 @@ export default class CustomCommandManager extends Command {
                 value: ApplicationCommandType.MESSAGE
               }
             ]
+          }]
+        },
+        {
+          name: "update",
+          type: CommandOptionType.SUB_COMMAND,
+          description: "Update an existing command",
+          options: [{
+            name: "name",
+            type: CommandOptionType.STRING,
+            description: "The name of the command",
+            required: true,
+            autocomplete: true
+          }, {
+            name: "content",
+            type: CommandOptionType.STRING,
+            description: "The content of the command",
+            required: false
+          }, {
+            name: "description",
+            type: CommandOptionType.STRING,
+            description: "The description of the command",
+            required: false
           }]
         },
         { // delete a command
@@ -94,109 +116,138 @@ export default class CustomCommandManager extends Command {
     return testPattern.test(input);
   }
 
-
   async autocomplete(ctx: AutocompleteContext) {
     const commands = await this.service.getAll(ctx.guildID!);
-    const commandNames = commands // it's only the name that matters at this moment... not to say that it's the best way to do it
-      .filter((c: Command) => c.name.startsWith(ctx.options[ctx.subcommands[0]].name))
-      .map((c: Command) => ({ name: `${c.name} (${humanizedCommandTypes[c.type]})`, value: c.name }));
-
-    ctx.sendResults(commandNames);
+    return commands // it's only the name that matters at this moment... not to say that it's the best way to do it
+      .filter((c: CommandPayload) => c.name.toLowerCase().startsWith(ctx.options[ctx.subcommands[0]].name))
+      .map((c: CommandPayload) => ({ name: `${c.name} (${humanizedCommandTypes[c.type]})`, value: c.name }));
   }
 
   async run(ctx: CommandContext) {
+    // kill early if this is not a guild
+    if (!ctx.guildID) {
+      return `❌ This command can only be used in a guild.`;
+    }
+
     await ctx.defer();
 
     try {
       switch (ctx.subcommands[0]) {
-        case "set":
-          await this.setCommand(ctx);
-          break;
+        case "create":
+          return await this.createCommand(ctx);
+        case "update":
+          return await this.updateCommand(ctx);
         case "delete":
-          await this.deleteCommand(ctx);
-          break;
+          return await this.deleteCommand(ctx);
         case "list":
-          await this.listCommands(ctx);
-          break;
+          return await this.listCommands(ctx);
         case "info":
-          await this.infoCommand(ctx);
-          break;
+          return await this.infoCommand(ctx);
         default:
-          await ctx.send("Invalid subcommand");
+          return ":x: Invalid subcommand";
       }
-    } catch(e: any) {
-      await ctx.send(`❌ ${e.message}`);
+    } catch (error: any) {
+      return `❌ An error occured...\n\`\`\`${error}\`\`\``;
     }
   }
 
-  async setCommand(ctx: CommandContext) {
-    const { name, type, content } = ctx.options.set;
-
-    // check name format matches with requirements
+  async createCommand(ctx: CommandContext) {
+    const { name, content, description, type } = ctx.options.create;
     if (!this.validateName(type, name)) {
-      await ctx.send(`❌ Invalid command name\n> Must match the pattern of \`^[\\w-]{1,32}$\`: mixed case and spaces are allowed for **non-chat commands**.`);
+      return [
+        `❌ Invalid command name!`,
+        `> Must match the pattern of \`^[\\w-]{1,32}$\``,
+        `> *Mixed case and spaces are allowed for **non-chat commands**.`
+      ]
+    }
+
+    // ensure that the command doesn't already exist
+    try {
+      const command = await this.service.findByName(ctx.guildID!, name);
+      if (command) {
+        return [
+          `❌ \`${name}\` already exists!`,
+          `> Existing type: \`${command.type}\``,
+          `> Requested type: \`${type}\`)`
+          // does not check per type *yet*...
+        ].join("\n");
+      }
+    } catch (_e) { }
+
+    const payload: Omit<CommandPayload, '_id' | '_rev' | 'key'> = {
+      name, content, type,
+      description: type === ApplicationCommandType.CHAT_INPUT ? description : undefined,
+      guildID: ctx.guildID!
+    }
+
+    await this.service.create(payload);
+    await ctx.send(`✅ \`${name}\` created!`);
+  }
+
+  async updateCommand(ctx: CommandContext) {
+    const { name, content, description, type } = ctx.options.update;
+
+    // ensure that the command exists
+    const command = await this.service.findByName(ctx.guildID!, name);
+    if (!command) {
+      await ctx.send(`❌ \`${name}\` does not exist`);
       return;
     }
-    console.log(ctx.interactionID, name, type, content, 'validated');
-    const command = await this.service.findByName(ctx.guildID!, ctx.options.name);
-    const payload: Omit<CommandPayload, '_id' | 'key'> = {
-      guildID: ctx.guildID!,
-      name, content, type,
-      description: ctx.options.description
+
+    // update command
+    const payload: CommandPayload = {
+      ...command, content, description, type
     }
-    if (command) {
-      console.log(ctx.interactionID, name, 'found');
-      await this.service.update({ ...command, ...payload });
-      await ctx.send(`✅ \`${name}\` updated`);
-    } else {
-      console.log(ctx.interactionID, name, 'creating');
-      await this.service.create(payload);
-      await ctx.send(`✅ \`${name}\` created`);
-    }
+
+    await this.service.update(payload);
+    return `✅ \`${name}\` updated!`;
   }
 
   async deleteCommand(ctx: CommandContext) {
     const { name } = ctx.options.delete;
-    const command = await this.service.findByName(ctx.guildID!, name);
+    const command = await this.service.getOne(name);
+
     if (!command) {
-      await ctx.send(`❌ \`${name}\` not found`);
-    } else {
-      await this.service.delete(command._id);
-      await ctx.send(`✅ \`${name}\` deleted`);
+      // ensure that the command exists
+      // autocomplete will have already validated this - probably not needed
+      return `❌ \`${name}\` not found!`;
     }
+
+    await this.service.delete(command._id);
+    return `✅ \`${name}\` deleted`;
   }
 
   async listCommands(ctx: CommandContext) {
     const commands = await this.service.getAll(ctx.guildID!);
     if (commands.length === 0) {
-      await ctx.send("No commands found");
-    } else {
-      const commandList = commands.map(c => `${c.name} (\`${c._id} - ${c._rev}\`)${c.description ? ` - ${c.description}` : ''}`);
-      await ctx.send({
-        embeds: [{
-          title: `Custom Commands`,
-          description: commandList.join('\n')
-        }]
-      });
+      return ":x: No commands found.";
     }
+
+    const commandList = commands.map(c => `${c.name} (\`${c._id} - ${c._rev}\`)${c.description ? ` - ${c.description}` : ''}`);
+    await ctx.send({
+      embeds: [{
+        title: `Custom Commands`,
+        description: commandList.join('\n')
+      }]
+    });
   }
 
   async infoCommand(ctx: CommandContext) {
     const { name } = ctx.options.info;
     const command = await this.service.findByName(ctx.guildID!, name);
     if (!command) {
-      await ctx.send(`❌ \`${name}\` not found`);
-    } else {
-      await ctx.send({
-        embeds: [{
-          title: `Custom Command`,
-          description: `\`${command.name}\`${command.description ? ` - ${command.description}` : ''}`
-        }],
-        file: {
-          file: Buffer.from(command.content, 'utf8'),
-          name: `${command.name}-${command._rev}.hbs`
-        }
-      });
+      return `❌ \`${name}\` not found.`;
     }
+
+    await ctx.send({
+      embeds: [{
+        title: `Custom Command`,
+        description: `\`${command.name}\`${command.description ? ` - ${command.description}` : ''}`
+      }],
+      file: {
+        file: Buffer.from(command.content.trim(), 'utf8'),
+        name: `${command.name}-${command._rev}.hbs`
+      }
+    });
   }
 }

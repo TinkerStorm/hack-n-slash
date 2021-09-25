@@ -12,11 +12,14 @@
   "dependencies": {
     "dotenv": "^10.0.0",
     "eris": "^0.15.1",
+    "mustache": "^4.2.0",
     "pouchdb": "^7.2.2",
+    "pouchdb-find": "^7.2.2",
     "slash-create": "^4.2.0",
     "tempura": "^0.3.2"
   },
   "devDependencies": {
+    "@types/mustache": "^4.1.2",
     "@types/node": "^16.9.6",
     "@types/pouchdb": "^6.4.0",
     "typescript": "^4.4.3"

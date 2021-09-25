@@ -6,11 +6,15 @@ export default class CommandService {
     
   }
 
-  public async getOne(id: string) {
+  public async hasOne(id: string): Promise<boolean> {
+    return db.get(id).then(res => !!res);
+  }
+
+  public async getOne(id: string): Promise<Command> {
     return db.get(id);
   }
 
-  public async getAll(guildID: string) {
+  public async getAll(guildID: string): Promise<Command[]> {
     return db.find({
       selector: {
         guildID
@@ -18,7 +22,7 @@ export default class CommandService {
     }).then(res => res.docs);
   }
 
-  public async findByName(guildID: string, name: string) {
+  public async findByName(guildID: string, name: string): Promise<Command | null> {
     return db.find({
       selector: {
         name, guildID
@@ -26,7 +30,7 @@ export default class CommandService {
     }).then(res => res.docs[0]);
   }
 
-  public async create(command: Omit<Command, "_id" | 'key'>) {
+  public async create(command: Omit<Command, "_id" | '_rev' | 'key'>): Promise<any> {
     const response = await this.creator.api.createCommand({
       name: command.name,
       description: command.description,
@@ -42,7 +46,7 @@ export default class CommandService {
   }
 
 
-  public async update(command: Command) {
+  public async update(command: Command): Promise<any> {
     await this.creator.api.updateCommand(command._id, {
       name: command.name!,
       description: command.description!,
@@ -55,7 +59,11 @@ export default class CommandService {
     });
   }
 
-  public async delete(id: string) {
-    return db.remove(await this.getOne(id));
+  public async delete(id: string): Promise<boolean> {
+    const command = await this.getOne(id);
+    // @ts-ignore
+    const result = await db.remove(command);
+    await this.creator.api.deleteCommand(command._id, command.guildID);
+    return result.ok
   }
 }
