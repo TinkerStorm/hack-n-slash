@@ -59,9 +59,9 @@ export default class CustomCommandManager extends Command {
           type: CommandOptionType.SUB_COMMAND,
           description: "Update an existing command",
           options: [{
-            name: "name",
+            name: "ref",
             type: CommandOptionType.STRING,
-            description: "The name of the command",
+            description: "The reference of the command",
             required: true,
             autocomplete: true
           }, {
@@ -81,9 +81,9 @@ export default class CustomCommandManager extends Command {
           type: CommandOptionType.SUB_COMMAND,
           description: "Delete a command",
           options: [{
-            name: "name",
+            name: "ref",
             type: CommandOptionType.STRING,
-            description: "The name of the command",
+            description: "The reference of the command",
             required: true,
             autocomplete: true
           }]
@@ -98,9 +98,9 @@ export default class CustomCommandManager extends Command {
           type: CommandOptionType.SUB_COMMAND,
           description: "Get info about a command",
           options: [{
-            name: "name",
+            name: "ref",
             type: CommandOptionType.STRING,
-            description: "The name of the command",
+            description: "The reference of the command",
             required: true,
             autocomplete: true
           }]
@@ -119,8 +119,12 @@ export default class CustomCommandManager extends Command {
   async autocomplete(ctx: AutocompleteContext) {
     const commands = await this.service.getAll(ctx.guildID!);
     return commands // it's only the name that matters at this moment... not to say that it's the best way to do it
-      .filter((c: CommandPayload) => c.name.toLowerCase().startsWith(ctx.options[ctx.subcommands[0]].name))
-      .map((c: CommandPayload) => ({ name: `${c.name} (${humanizedCommandTypes[c.type]})`, value: c.name }));
+      .filter((c: CommandPayload) => c.name.toLowerCase().startsWith(ctx.options[ctx.subcommands[0]].ref))
+      .map((c: CommandPayload) => ({ name: `${c.name} (${humanizedCommandTypes[c.type]})`, value: c.id }));
+  }
+
+  async onError(err: Error, ctx: CommandContext) {
+    return `❌ ${err.message}`;
   }
 
   async run(ctx: CommandContext) {
@@ -131,46 +135,52 @@ export default class CustomCommandManager extends Command {
 
     await ctx.defer();
 
+    console.log(`Running command ${ctx.guildID}:${ctx.commandID}/${ctx.commandName}/${ctx.subcommands[0]}`);
+
+    let response: string | object | Promise<string | object>;
+
     try {
       switch (ctx.subcommands[0]) {
         case "create":
-          return await this.createCommand(ctx);
+          response = this.createCommand(ctx);
         case "update":
-          return await this.updateCommand(ctx);
+          response = this.updateCommand(ctx);
         case "delete":
-          return await this.deleteCommand(ctx);
+          response = this.deleteCommand(ctx);
         case "list":
-          return await this.listCommands(ctx);
+          response = this.listCommands(ctx);
         case "info":
-          return await this.infoCommand(ctx);
+          response = this.infoCommand(ctx);
         default:
-          return ":x: Invalid subcommand";
+          response = "❌ Invalid subcommand";
       }
     } catch (error: any) {
-      return `❌ An error occured...\n\`\`\`${error}\`\`\``;
+      response = `❌ An error occured...\n\`\`\`${error}\`\`\``;
     }
+
+    return response;
   }
 
   async createCommand(ctx: CommandContext) {
     const { name, content, description, type } = ctx.options.create;
     if (!this.validateName(type, name)) {
-      return [
+      await ctx.send([
         `❌ Invalid command name!`,
         `> Must match the pattern of \`^[\\w-]{1,32}$\``,
         `> *Mixed case and spaces are allowed for **non-chat commands**.`
-      ]
+      ].join('\n'));
     }
 
     // ensure that the command doesn't already exist
     try {
       const command = await this.service.findByName(ctx.guildID!, name);
       if (command) {
-        return [
+        await ctx.send([
           `❌ \`${name}\` already exists!`,
           `> Existing type: \`${command.type}\``,
           `> Requested type: \`${type}\`)`
           // does not check per type *yet*...
-        ].join("\n");
+        ].join("\n"));
       }
     } catch (_e) { }
 
@@ -181,17 +191,17 @@ export default class CustomCommandManager extends Command {
     }
 
     await this.service.create(payload);
-    await ctx.send(`✅ \`${name}\` created!`);
+    console.log(`[${payload.guildID}/*] Created command: ${name}`);
+    return `✅ \`${name}\` created!`;
   }
 
   async updateCommand(ctx: CommandContext) {
-    const { name, content, description, type } = ctx.options.update;
+    const { ref, content, description, type } = ctx.options.update;
 
     // ensure that the command exists
-    const command = await this.service.findByName(ctx.guildID!, name);
+    const command = await this.service.findByName(ctx.guildID!, ref);
     if (!command) {
-      await ctx.send(`❌ \`${name}\` does not exist`);
-      return;
+      return `❌ \`${ref}\` does not exist`;
     }
 
     // update command
@@ -200,48 +210,51 @@ export default class CustomCommandManager extends Command {
     }
 
     await this.service.update(payload);
-    return `✅ \`${name}\` updated!`;
+    console.log(`Updated command ${command.guildID}:${command.id}/${command.name}`);
+    return `✅ \`${ref}\` updated!`;
   }
 
   async deleteCommand(ctx: CommandContext) {
-    const { name } = ctx.options.delete;
-    const command = await this.service.getOne(name);
+    const { ref } = ctx.options.delete;
+    const command = await this.service.getOne(ref);
 
     if (!command) {
-      // ensure that the command exists
-      // autocomplete will have already validated this - probably not needed
-      return `❌ \`${name}\` not found!`;
+      return `❌ \`${ref}\` not found!`;
     }
 
     await this.service.delete(command);
-    return `✅ \`${name}\` deleted`;
+    console.log(`Deleted command ${command.guildID}:${command.id}/${command.name}`);
+    return `✅ \`${ref}\` deleted`;
   }
 
   async listCommands(ctx: CommandContext) {
+    console.log(`Before query`);
     const commands = await this.service.getAll(ctx.guildID!);
+    console.log(`After query`);
     if (commands.length === 0) {
-      return ":x: No commands found.";
+      return "❌ No commands found.";
     }
 
+    console.log(`Found ${commands.length} commands`);
     const commandList = commands.map(c => `${c.name} (${humanizedCommandTypes[c.type]} \`${c.id}\`)${c.description ? ` - ${c.description}` : ''}`);
-    await ctx.send({
+    return {
       embeds: [{
         title: `Custom Commands`,
         description: commandList.join('\n')
       }]
-    });
+    };
   }
 
   async infoCommand(ctx: CommandContext) {
-    const { name } = ctx.options.info;
-    const command = await this.service.findByName(ctx.guildID!, name);
+    const { ref } = ctx.options.info;
+    const command = await this.service.findByName(ctx.guildID!, ref);
     if (!command) {
-      return `❌ \`${name}\` not found.`;
+      return `❌ \`${ref}\` not found.`;
     }
 
     await ctx.send({
       embeds: [{
-        title: `Custom Command`,
+        title: `Custom Command (${humanizedCommandTypes[command.type]})`,
         description: `\`${command.name}\`${command.description ? ` - ${command.description}` : ''}`
       }],
       file: {

@@ -24,6 +24,7 @@ const service = new CommandService(creator);
 const engine = new TemplateEngine();
 
 creator
+  .on('debug', console.log)
   .registerCommandsIn(resolve(process.cwd(), './dist/commands'))
   .withServer(new GatewayServer((handler) => {
     client.on('rawWS', (event) => {
