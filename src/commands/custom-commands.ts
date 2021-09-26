@@ -183,10 +183,10 @@ export default class CustomCommandManager extends Command {
   }
 
   async updateCommand(ctx: CommandContext) {
-    const { ref, content, description, type } = ctx.options.update;
+    const { ref, content, description } = ctx.options.update;
 
     // ensure that the command exists
-    const command = await this.service.findByName(ctx.guildID!, ref);
+    const command = await this.service.getOne(ctx.guildID!, ref);
     if (!command) {
       throw `\`${ref}\` does not exist`;
     }
@@ -203,7 +203,7 @@ export default class CustomCommandManager extends Command {
 
   async deleteCommand(ctx: CommandContext) {
     const { ref } = ctx.options.delete;
-    const command = await this.service.getOne(ref);
+    const command = await this.service.getOne(ctx.guildID!, ref);
 
     if (!command) {
       throw `\`${ref}\` not found!`;
