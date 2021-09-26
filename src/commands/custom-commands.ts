@@ -203,7 +203,9 @@ export default class CustomCommandManager extends Command {
 
     // update command
     const payload: CommandPayload = {
-      ...command, content, description, type
+      ...command,
+      content: content || command.content,
+      description: command.type ? (description || command.description) : undefined
     }
 
     await this.service.update(payload);
