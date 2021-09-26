@@ -38,8 +38,9 @@ creator.on('commandInteraction', async (interaction, respond, webserverMode) => 
   await ctx.defer();
   // determine if a custom command can be used for this interaction
   const hasCoreCommand = creator.commands.has(`${ctx.commandType}:global:${ctx.commandName}`);
+  const hasGuildContext = await service.hasOne(ctx.commandID);
 
-  if (hasCoreCommand) {
+  if (hasCoreCommand || !hasGuildContext) { // skip if a custom command is available - when the id is found, it will be used
     const command = creator.commands.get(`${ctx.commandType}:global:${ctx.commandName}`);
     await command!.run(ctx);
     return;
