@@ -1,10 +1,10 @@
-import { SlashCreator } from "slash-create";
-import { Tedis } from 'tedis';
+import { ApplicationCommand, SlashCreator } from "slash-create";
+import { createNodeRedisClient } from 'handy-redis';
 
 import { Command } from '../util/types';
 
 export default class CommandService {
-  static database = new Tedis();
+  static database = createNodeRedisClient();
 
   get db() { return CommandService.database; }
 
@@ -16,13 +16,17 @@ export default class CommandService {
     return `commands:${command.guildID || '*'}:${command.id || '*'}`;
   }
 
-  public async hasOne(id: string): Promise<boolean> {
-    return !!this.getOne(id);
+  protected isNotEmpty(value: any) {
+    return value !== undefined && value !== null && value !== "" && value.length > 0;
   }
 
-  public async getOne(id: string): Promise<Command | undefined> {
-    return this.db.get(this.buildKey({ id })).then(command => {
-      if (typeof command === "string") {
+  public async hasOne(id: string): Promise<boolean> {
+    return (await this.db.keys(this.buildKey({ id }))).length > 0;
+  }
+
+  public async getOne(guildID: string, id: string): Promise<Command | undefined> {
+    return await this.db.get(this.buildKey({ id, guildID })).then(command => {
+      if (typeof command === "string" && this.isNotEmpty(command)) {
         return JSON.parse(command);
       }
 
@@ -31,10 +35,10 @@ export default class CommandService {
   }
 
   public async getAll(guildID: string): Promise<Command[]> {
-    return this.db.get(this.buildKey({ guildID })).then(commands => {
-      if (typeof commands === "string") {
-        const keys = JSON.parse(commands) as string[];
-        return Promise.all(keys.map(key => this.getOne(key))) as Promise<Command[]>;
+    return this.db.keys(this.buildKey({ guildID })).then(keys => {
+      if (this.isNotEmpty(keys)) {
+        const commands = keys.map(async key => await this.db.get(key)) as Promise<string>[];
+        return Promise.all(commands).then(values => values.map(value => JSON.parse(value)));
       }
 
       return [];
@@ -51,8 +55,10 @@ export default class CommandService {
     });
   }
 
-  public async create(command: Omit<Command, "id">): Promise<any> {
+  public async create(command: Omit<Command, "id">): Promise<ApplicationCommand> {
+    // console log everything
     const response = await this.creator.api.createCommand({
+      type: command.type,
       name: command.name,
       description: command.description,
       // options: command.options || [],
@@ -61,30 +67,38 @@ export default class CommandService {
 
     const { id, guild_id: guildID } = response;
 
-    return this.db.set(
+    await this.db.set(
       this.buildKey({ id, guildID }),
       JSON.stringify({ ...command, id })
     );
+
+    return response;
   }
 
 
-  public async update(command: Command): Promise<any> {
+  public async update(command: Command): Promise<ApplicationCommand> {    
     // fetch the command
-    command = { ...await this.getOne(command.id), ...command };
+    command = { ...await this.getOne(command.guildID, command.id), ...command };
 
-    await this.creator.api.updateCommand(command.id, {
+    const response = await this.creator.api.updateCommand(command.id, {
       name: command.name!,
       description: command.description!,
       // options: command.options || [],
       // default_permission: command.defaultPermission // boolean
     }, command.guildID);
 
-    return this.db.set(this.buildKey(command), JSON.stringify(command));
+    await this.db.set(this.buildKey(command), JSON.stringify(command));
+
+    return response;
   }
 
-  public async delete(command: Command): Promise<void> {
-    // @ts-ignore
-    await this.creator.api.deleteCommand(command.id, command.guildID);
-    await this.db.del(this.buildKey(command));
+  public async delete(command: Command): Promise<boolean> {
+    try {
+      await this.creator.api.deleteCommand(command.id, command.guildID);
+      await this.db.del(this.buildKey(command));
+      return true;
+    } catch(e) {
+      throw e;
+    }
   }
 }
