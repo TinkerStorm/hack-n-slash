@@ -1,4 +1,4 @@
-import { compile } from 'tempura';
+import { compile, Args } from 'tempura';
 
 export default class TemplateEngine {
   private cache: { [templateHash: string]: Function } = {};
@@ -6,21 +6,18 @@ export default class TemplateEngine {
 
   public addBlock(fn: Function, name?: string): this {
     this.blocks[name || fn.name] = fn;
-    console.log(`Added block ${name || fn.name}`);
+    this.resetCache();
     return this;
   }
 
   public addManyBlocks(blocks: { [blockName: string]: Function }): this {
     Object.keys(blocks).forEach(name => this.addBlock(blocks[name], name));
-    console.log(`Added ${Object.keys(blocks).length} blocks`);
     return this;
   }
 
-  public async render(template: string, data: any): Promise<string> {
+  public async render(template: string, data: Args): Promise<string> {
     // hash template
     const hash = this.generateHash(template);
-
-    (this.cache[hash] ||= await Promise.resolve(compile(template)))(data, this.blocks);
 
     if (!this.cache[hash]) {
       this.cache[hash] = await Promise.resolve(compile(template));
@@ -36,8 +33,11 @@ export default class TemplateEngine {
     }, 0).toString(36);
   }
 
-  reset() {
-    this.blocks = {};
+  resetCache() {
     this.cache = {};
+  }
+
+  resetBlocks() {
+    this.blocks = {};
   }
 }
