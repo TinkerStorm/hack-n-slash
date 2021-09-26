@@ -209,8 +209,8 @@ export default class CustomCommandManager extends Command {
     }
 
     await this.service.update(payload);
-    console.log(`Updated command ${command.guildID}:${command.id}/${command.name}`);
-    return ctx.send(`✅ \`${ref}\` updated!`);
+    console.log(`[${ctx.guildID}/${ref}] Updated command: ${command.name}`);
+    return ctx.send(`✅ \`${command.name} (${ref})\` updated!`);
   }
 
   async deleteCommand(ctx: CommandContext) {
@@ -222,8 +222,8 @@ export default class CustomCommandManager extends Command {
     }
 
     await this.service.delete(command);
-    console.log(`Deleted command ${command.guildID}:${command.id}/${command.name}`);
-    return ctx.send(`✅ \`${ref}\` deleted`);
+    console.log(`[${ctx.guildID}/${ref}] Deleted command: ${command.name}`);
+    return ctx.send(`✅ \`${command.name} (${ref})\` deleted`);
   }
 
   async listCommands(ctx: CommandContext) {
