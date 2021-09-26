@@ -13,99 +13,93 @@ export default class CustomCommandManager extends Command {
       description: "Manage custom commands",
       type: ApplicationCommandType.CHAT_INPUT,
       requiredPermissions: ["MANAGE_GUILD"],
-      options: [
-        {
-          name: "create",
-          type: CommandOptionType.SUB_COMMAND,
-          description: "Create new a command",
-          options: [{
-            name: "name",
-            type: CommandOptionType.STRING,
-            description: "The name of the command",
-            required: true
-          }, {
-            name: "content",
-            type: CommandOptionType.STRING,
-            description: "The content of the command",
-            required: true
-          }, {
-            name: "description",
-            type: CommandOptionType.STRING,
-            description: "The description of the command (only required for **Chat Command** type).",
-            required: true
-          }, {
-            name: "type",
-            type: CommandOptionType.INTEGER,
-            description: "The type of the command",
-            required: true,
-            choices: [
-              {
-                name: "Chat Command",
-                value: ApplicationCommandType.CHAT_INPUT
-              },
-              {
-                name: "User Command",
-                value: ApplicationCommandType.USER
-              },
-              {
-                name: "Message Command",
-                value: ApplicationCommandType.MESSAGE
-              }
-            ]
-          }]
-        },
-        {
-          name: "update",
-          type: CommandOptionType.SUB_COMMAND,
-          description: "Update an existing command",
-          options: [{
-            name: "ref",
-            type: CommandOptionType.STRING,
-            description: "The reference of the command",
-            required: true,
-            autocomplete: true
-          }, {
-            name: "content",
-            type: CommandOptionType.STRING,
-            description: "The content of the command",
-            required: false
-          }, {
-            name: "description",
-            type: CommandOptionType.STRING,
-            description: "The description of the command",
-            required: false
-          }]
-        },
-        { // delete a command
-          name: "delete",
-          type: CommandOptionType.SUB_COMMAND,
-          description: "Delete a command",
-          options: [{
-            name: "ref",
-            type: CommandOptionType.STRING,
-            description: "The reference of the command",
-            required: true,
-            autocomplete: true
-          }]
-        },
-        { // list all commands
-          name: "list",
-          type: CommandOptionType.SUB_COMMAND,
-          description: "List all commands"
-        },
-        { // info about a command
-          name: "info",
-          type: CommandOptionType.SUB_COMMAND,
-          description: "Get info about a command",
-          options: [{
-            name: "ref",
-            type: CommandOptionType.STRING,
-            description: "The reference of the command",
-            required: true,
-            autocomplete: true
-          }]
-        }
-      ]
+      options: [{
+        name: "create",
+        type: CommandOptionType.SUB_COMMAND,
+        description: "Create new a command",
+        options: [{
+          name: "name",
+          type: CommandOptionType.STRING,
+          description: "The name of the command",
+          required: true
+        }, {
+          name: "content",
+          type: CommandOptionType.STRING,
+          description: "The content of the command",
+          required: true
+        }, {
+          name: "description",
+          type: CommandOptionType.STRING,
+          description: "The description of the command (only required for **Chat Command** type).",
+          required: true
+        }, {
+          name: "type",
+          type: CommandOptionType.INTEGER,
+          description: "The type of the command",
+          required: true,
+          choices: [
+            {
+              name: "Chat Command",
+              value: ApplicationCommandType.CHAT_INPUT
+            },
+            {
+              name: "User Command",
+              value: ApplicationCommandType.USER
+            },
+            {
+              name: "Message Command",
+              value: ApplicationCommandType.MESSAGE
+            }
+          ]
+        }]
+      }, {
+        name: "update",
+        type: CommandOptionType.SUB_COMMAND,
+        description: "Update an existing command",
+        options: [{
+          name: "ref",
+          type: CommandOptionType.STRING,
+          description: "The reference of the command",
+          required: true,
+          autocomplete: true
+        }, {
+          name: "content",
+          type: CommandOptionType.STRING,
+          description: "The content of the command",
+          required: false
+        }, {
+          name: "description",
+          type: CommandOptionType.STRING,
+          description: "The description of the command",
+          required: false
+        }]
+      }, { // delete a command
+        name: "delete",
+        type: CommandOptionType.SUB_COMMAND,
+        description: "Delete a command",
+        options: [{
+          name: "ref",
+          type: CommandOptionType.STRING,
+          description: "The reference of the command",
+          required: true,
+          autocomplete: true
+        }]
+      }, { // list all commands
+        name: "list",
+        type: CommandOptionType.SUB_COMMAND,
+        description: "List all commands"
+      }, { // info about a command
+        name: "info",
+        type: CommandOptionType.SUB_COMMAND,
+        description: "Get info about a command",
+        options: [{
+          name: "ref",
+          type: CommandOptionType.STRING,
+          description: "The reference of the command",
+          required: true,
+          autocomplete: true
+        }]
+      }]
     });
 
     this.service = new CommandService(creator);
@@ -130,35 +124,31 @@ export default class CustomCommandManager extends Command {
   async run(ctx: CommandContext) {
     // kill early if this is not a guild
     if (!ctx.guildID) {
-      return `❌ This command can only be used in a guild.`;
+      return ctx.send(`❌ This command can only be used in a guild.`);
     }
 
     await ctx.defer();
 
     console.log(`Running command ${ctx.guildID}:${ctx.commandID}/${ctx.commandName}/${ctx.subcommands[0]}`);
 
-    let response: string | object | Promise<string | object>;
-
     try {
       switch (ctx.subcommands[0]) {
         case "create":
-          response = this.createCommand(ctx);
+          return this.createCommand(ctx);
         case "update":
-          response = this.updateCommand(ctx);
+          return this.updateCommand(ctx);
         case "delete":
-          response = this.deleteCommand(ctx);
+          return this.deleteCommand(ctx);
         case "list":
-          response = this.listCommands(ctx);
+          return this.listCommands(ctx);
         case "info":
-          response = this.infoCommand(ctx);
+          return this.infoCommand(ctx);
         default:
-          response = "❌ Invalid subcommand";
+          return ctx.send("❌ Invalid subcommand");
       }
     } catch (error: any) {
-      response = `❌ An error occured...\n\`\`\`${error}\`\`\``;
+      return ctx.send(`❌ An error occured...\n\`\`\`${error}\`\`\``);
     }
-
-    return response;
   }
 
   async createCommand(ctx: CommandContext) {
@@ -192,7 +182,7 @@ export default class CustomCommandManager extends Command {
 
     await this.service.create(payload);
     console.log(`[${payload.guildID}/*] Created command: ${name}`);
-    return `✅ \`${name}\` created!`;
+    return ctx.send(`✅ \`${name}\` created!`);
   }
 
   async updateCommand(ctx: CommandContext) {
@@ -201,7 +191,7 @@ export default class CustomCommandManager extends Command {
     // ensure that the command exists
     const command = await this.service.findByName(ctx.guildID!, ref);
     if (!command) {
-      return `❌ \`${ref}\` does not exist`;
+      return ctx.send(`❌ \`${ref}\` does not exist`);
     }
 
     // update command
@@ -211,7 +201,7 @@ export default class CustomCommandManager extends Command {
 
     await this.service.update(payload);
     console.log(`Updated command ${command.guildID}:${command.id}/${command.name}`);
-    return `✅ \`${ref}\` updated!`;
+    return ctx.send(`✅ \`${ref}\` updated!`);
   }
 
   async deleteCommand(ctx: CommandContext) {
@@ -219,37 +209,35 @@ export default class CustomCommandManager extends Command {
     const command = await this.service.getOne(ref);
 
     if (!command) {
-      return `❌ \`${ref}\` not found!`;
+      return ctx.send(`❌ \`${ref}\` not found!`);
     }
 
     await this.service.delete(command);
     console.log(`Deleted command ${command.guildID}:${command.id}/${command.name}`);
-    return `✅ \`${ref}\` deleted`;
+    return ctx.send(`✅ \`${ref}\` deleted`);
   }
 
   async listCommands(ctx: CommandContext) {
-    console.log(`Before query`);
     const commands = await this.service.getAll(ctx.guildID!);
-    console.log(`After query`);
     if (commands.length === 0) {
-      return "❌ No commands found.";
+      return ctx.send("❌ No commands found.");
     }
 
     console.log(`Found ${commands.length} commands`);
     const commandList = commands.map(c => `${c.name} (${humanizedCommandTypes[c.type]} \`${c.id}\`)${c.description ? ` - ${c.description}` : ''}`);
-    return {
+    return ctx.send({
       embeds: [{
         title: `Custom Commands`,
         description: commandList.join('\n')
       }]
-    };
+    });
   }
 
   async infoCommand(ctx: CommandContext) {
     const { ref } = ctx.options.info;
     const command = await this.service.findByName(ctx.guildID!, ref);
     if (!command) {
-      return `❌ \`${ref}\` not found.`;
+      return ctx.send(`❌ \`${ref}\` not found.`);
     }
 
     await ctx.send({

@@ -48,8 +48,6 @@ export default class CommandService {
           return command;
         }
       }
-
-      return undefined;
     });
   }
 
@@ -65,10 +63,7 @@ export default class CommandService {
 
     return this.db.set(
       this.buildKey({ id, guildID }),
-      JSON.stringify({
-        ...command,
-        id: response.id
-      })
+      JSON.stringify({ ...command, id })
     );
   }
 
