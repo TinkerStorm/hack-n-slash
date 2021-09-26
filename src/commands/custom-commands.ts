@@ -181,11 +181,15 @@ export default class CustomCommandManager extends Command {
       name, content, type,
       description: type === ApplicationCommandType.CHAT_INPUT ? description || 'This is a custom command.' : undefined,
       guildID: ctx.guildID!
-    }
+    };
 
-    await this.service.create(payload);
-    console.log(`[${payload.guildID}/*] Created command: ${name}`);
-    return ctx.send(`✅ \`${name}\` created!`);
+    try {
+      const response = await this.service.create(payload);
+      console.log(`[${response.guild_id}/${response.id}] Created command: ${name}`);
+      return ctx.send(`✅ \`${name} (${response.id})\` created!`);
+    } catch (e) {
+      throw `An error occured...\n\`\`\`${e}\n\n${inspect(payload)}\`\`\``;
+    }
   }
 
   async updateCommand(ctx: CommandContext) {
