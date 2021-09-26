@@ -28,11 +28,6 @@ export default class CustomCommandManager extends Command {
           description: "The content of the command",
           required: true
         }, {
-          name: "description",
-          type: CommandOptionType.STRING,
-          description: "The description of the command (only required for **Chat Command** type).",
-          required: true
-        }, {
           name: "type",
           type: CommandOptionType.INTEGER,
           description: "The type of the command",
@@ -51,6 +46,11 @@ export default class CustomCommandManager extends Command {
               value: ApplicationCommandType.MESSAGE
             }
           ]
+        }, {
+          name: "description",
+          type: CommandOptionType.STRING,
+          description: "The description of the command.",
+          required: false
         }]
       }, {
         name: "update",
