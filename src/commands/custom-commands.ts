@@ -117,14 +117,11 @@ export default class CustomCommandManager extends Command {
       .map((c: CommandPayload) => ({ name: `${c.name} (${humanizedCommandTypes[c.type]})`, value: c.id }));
   }
 
-  async onError(err: Error, ctx: CommandContext) {
-    return `❌ ${err.message}`;
-  }
-
   async run(ctx: CommandContext) {
     // kill early if this is not a guild
     if (!ctx.guildID) {
-      return ctx.send(`❌ This command can only be used in a guild.`);
+      await ctx.send(`This command can only be used in a guild.`);
+      return;
     }
 
     await ctx.defer();
