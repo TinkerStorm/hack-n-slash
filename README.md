@@ -8,6 +8,8 @@ Custom commands use [Tempura](https://github.com/lukeed/tempura) to handle the c
 
 When searching for existing commands (update, info, delete), the service will return the top 20 matches.
 
+You can invite the universal deployment [here](https://discord.com/api/oauth2/authorize?client_id=891363778808152125&permissions=0&scope=bot%20applications.commands).
+
 ## License
 
 All I ask is that you follow the given [LICENSE](./LICENSE).
