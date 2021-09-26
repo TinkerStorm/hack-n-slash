@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "eris": "^0.15.1",
+    "handy-redis": "^2.3.1",
     "ramda": "^0.27.1",
+    "redis": "^3.1.2",
     "slash-create": "^4.2.0",
-    "tedis": "^0.1.12",
     "tempura": "^0.3.2"
   },
   "devDependencies": {
