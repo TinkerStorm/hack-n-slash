@@ -1,5 +1,6 @@
 import { ApplicationCommandType, Command, CommandContext, CommandOptionType, Permissions, SlashCreator } from "slash-create";
 import { AutocompleteContext } from "slash-create/lib/structures/interfaces/autocompleteContext";
+import { inspect } from "util";
 import CommandService from "../services/command";
 import { Command as CommandPayload } from "../util/types";
 
@@ -126,8 +127,6 @@ export default class CustomCommandManager extends Command {
 
     await ctx.defer();
 
-    console.log(`Running command ${ctx.guildID}:${ctx.commandID}/${ctx.commandName}/${ctx.subcommands[0]}`);
-
     try {
       switch (ctx.subcommands[0]) {
         case "create":
@@ -232,7 +231,6 @@ export default class CustomCommandManager extends Command {
       throw "No commands found.";
     }
 
-    console.log(`Found ${commands.length} commands`);
     const commandList = commands.map(c => `${c.name} (${humanizedCommandTypes[c.type]} \`${c.id}\`)${c.description ? ` - ${c.description}` : ''}`);
     return ctx.send({
       embeds: [{
@@ -244,7 +242,7 @@ export default class CustomCommandManager extends Command {
 
   async infoCommand(ctx: CommandContext) {
     const { ref } = ctx.options.info;
-    const command = await this.service.findByName(ctx.guildID!, ref);
+    const command = await this.service.getOne(ctx.guildID!, ref);
     if (!command) {
       throw `\`${ref}\` not found.`;
     }
