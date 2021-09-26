@@ -171,9 +171,15 @@ export default class CustomCommandManager extends Command {
       }
     } catch (_e) { }
 
+    if (type === ApplicationCommandType.CHAT_INPUT && !description) {
+      throw `You must provide a description for chat commands!`;
+    }
+
+    // name, content, type and guildID are required
+    // description is required only by chat commands
     const payload: Omit<CommandPayload, 'id'> = {
       name, content, type,
-      description: type === ApplicationCommandType.CHAT_INPUT ? description : undefined,
+      description: type === ApplicationCommandType.CHAT_INPUT ? description || 'This is a custom command.' : undefined,
       guildID: ctx.guildID!
     }
 
