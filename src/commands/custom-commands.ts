@@ -141,33 +141,33 @@ export default class CustomCommandManager extends Command {
         case "info":
           return this.infoCommand(ctx);
         default:
-          return ctx.send("❌ Invalid subcommand");
+          await ctx.send(`❌ Invalid subcommand (\`${ctx.subcommands[0]} -> ${JSON.stringify(ctx.options || {})}\`)`);
       }
     } catch (error: any) {
-      return ctx.send(`❌ An error occured...\n\`\`\`${error}\`\`\``);
+      ctx.send(`❌ An error occured...\n\`\`\`${error}\`\`\``);
     }
   }
 
   async createCommand(ctx: CommandContext) {
     const { name, content, description, type } = ctx.options.create;
     if (!this.validateName(type, name)) {
-      await ctx.send([
-        `❌ Invalid command name!`,
+      throw [
+        `Invalid command name!`,
         `> Must match the pattern of \`^[\\w-]{1,32}$\``,
         `> *Mixed case and spaces are allowed for **non-chat commands**.`
-      ].join('\n'));
+      ].join('\n');
     }
 
     // ensure that the command doesn't already exist
     try {
       const command = await this.service.findByName(ctx.guildID!, name);
       if (command) {
-        await ctx.send([
-          `❌ \`${name}\` already exists!`,
+        throw [
+          `\`${name}\` already exists!`,
           `> Existing type: \`${command.type}\``,
-          `> Requested type: \`${type}\`)`
+          `> Requested type: \`${type}\``
           // does not check per type *yet*...
-        ].join("\n"));
+        ].join("\n");
       }
     } catch (_e) { }
 
@@ -188,7 +188,7 @@ export default class CustomCommandManager extends Command {
     // ensure that the command exists
     const command = await this.service.findByName(ctx.guildID!, ref);
     if (!command) {
-      return ctx.send(`❌ \`${ref}\` does not exist`);
+      throw `\`${ref}\` does not exist`;
     }
 
     // update command
@@ -206,7 +206,7 @@ export default class CustomCommandManager extends Command {
     const command = await this.service.getOne(ref);
 
     if (!command) {
-      return ctx.send(`❌ \`${ref}\` not found!`);
+      throw `\`${ref}\` not found!`;
     }
 
     await this.service.delete(command);
@@ -217,7 +217,7 @@ export default class CustomCommandManager extends Command {
   async listCommands(ctx: CommandContext) {
     const commands = await this.service.getAll(ctx.guildID!);
     if (commands.length === 0) {
-      return ctx.send("❌ No commands found.");
+      throw "No commands found.";
     }
 
     console.log(`Found ${commands.length} commands`);
@@ -234,7 +234,7 @@ export default class CustomCommandManager extends Command {
     const { ref } = ctx.options.info;
     const command = await this.service.findByName(ctx.guildID!, ref);
     if (!command) {
-      return ctx.send(`❌ \`${ref}\` not found.`);
+      throw `\`${ref}\` not found.`;
     }
 
     await ctx.send({
