@@ -24,13 +24,14 @@ const service = new CommandService(creator);
 const engine = new TemplateEngine();
 
 creator
+  // .on('debug', console.log)
   .registerCommandsIn(resolve(process.cwd(), './dist/commands'))
   .withServer(new GatewayServer((handler) => {
     client.on('rawWS', (event) => {
       if (event.t === 'INTERACTION_CREATE')
         handler(event.d as InteractionRequestData);
     });
-  }))
+  }));
 
 creator.on('commandInteraction', async (interaction, respond, webserverMode) => {
   const ctx = new CommandContext(creator, interaction, respond, webserverMode);
@@ -45,26 +46,47 @@ creator.on('commandInteraction', async (interaction, respond, webserverMode) => 
   }
 
   try {
-    const command = await service.getOne(ctx.commandID);
+    // require guild context
+    if (!ctx.guildID) {
+      await ctx.send(':x: Custom commands can only be used in a guild.');
+      return;
+    }
+
+    const command = await service.getOne(ctx.guildID, ctx.commandID);
 
     if (!command) {
-      return `:x: Command not found.`;
+      return ctx.send(`:x: Command not found.`);
     }
     // console.log(command._id, command.key, command.description);
 
     // omit methods that are not meant to be used by the user
 
-    const content = await engine.render(command.content, {
-      data: ctx.data,
-      options: ctx.options,
+    let data: Record<string, any> = {
+      ...R.omit(['token'], ctx.data),
+      interactionID: ctx.interactionID,
+      guildID: ctx.guildID,
+      channelID: ctx.channelID,
+      commandID: ctx.commandID,
+      users: Object.fromEntries(ctx.users),
+      members: Object.fromEntries(ctx.members),
+      roles: Object.fromEntries(ctx.roles),
+      channels: Object.fromEntries(ctx.channels),
+      messages: Object.fromEntries(ctx.messages),
+      command: command,
       member: ctx.member,
+      user: ctx.user,
+      targetMessage: ctx.targetMessage || null,
+      targetUser: ctx.targetUser || null,
+      targetMember: ctx.targetMember || null,
+      channel: ctx.channels.get(ctx.channelID) || null,
+    }
 
-      // subcommands: ctx.subcommands,
-      targetMessage: command.type === ApplicationCommandType.MESSAGE ? R.omit(["edit", "delete"], ctx.targetMessage) : null,
-      targetMember: command.type === ApplicationCommandType.USER ? ctx.targetMember : null
-    });
+    const expect = `{{#expect ${Object.keys(data).filter(key => data[key] !== undefined)} }}`;
+    
+    const content = await engine.render(expect + command.content, data);
     // console.log(content);
     await ctx.send(content);
+    console.log(`[${ctx.guildID}/${ctx.commandID}] ${command.name} was run by ${ctx.user.username}#${ctx.user.discriminator} (${ctx.user.id})`);
   } catch (e) {
     // console.log(e);
     await ctx.send(':x: Sorry, an error occurred.\n```' + e + '```');

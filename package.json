@@ -10,20 +10,17 @@
     "build": "tsc"
   },
   "dependencies": {
-    "dotenv": "^10.0.0",
-    "enmap": "^5.8.7",
     "eris": "^0.15.1",
-    "mustache": "^4.2.0",
+    "handy-redis": "^2.3.1",
     "ramda": "^0.27.1",
+    "redis": "^3.1.2",
     "slash-create": "^4.2.0",
     "tempura": "^0.3.2"
   },
   "devDependencies": {
-    "@types/mustache": "^4.1.2",
     "@types/node": "^16.9.6",
-    "@types/pouchdb": "^6.4.0",
     "@types/ramda": "^0.27.45",
-    "@types/sqlite3": "^3.1.7",
+    "@vercel/ncc": "^0.31.1",
     "typescript": "^4.4.3"
   }
 }

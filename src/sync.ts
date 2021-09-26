@@ -10,5 +10,8 @@ new SlashCreator({
   publicKey: config.publicKey,
   token: config.token
 })
+  .on('debug', console.log)
   .registerCommandsIn(resolve(process.cwd(), './dist/commands'))
-  .syncGlobalCommands();
+  .syncGlobalCommands().then(() => {
+    process.exit();
+  });
