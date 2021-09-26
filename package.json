@@ -2,7 +2,7 @@
   "name": "hack-n-slash",
   "version": "1.0.0",
   "main": "app.js",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "sync": "node ./dist/sync.js",

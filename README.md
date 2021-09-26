@@ -8,6 +8,14 @@ Custom commands use [Tempura](https://github.com/lukeed/tempura) to handle the c
 
 When searching for existing commands (update, info, delete), the service will return the top 20 matches.
 
+## License
+
+All I ask is that you follow the given [LICENSE](./LICENSE).
+
+> Do **not** add your own instance to a bot list, while I won't actively hunt you down - most *or all* lists do not allow direct copies.
+
+**Consider this your only warning.**
+
 ## Context (Incomplete listing)
 
 > [Full list of data available in the context](https://github.com/sudojunior/hack-n-slash/blob/main/src/util/template-engine.ts#L64-82)
