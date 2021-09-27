@@ -1,7 +1,7 @@
-import { ApplicationCommandType, ButtonStyle, CommandContext, CommandOptionType, ComponentType, SlashCommand, SlashCreator } from 'slash-create';
+import { ApplicationCommandType, ButtonStyle, CommandContext, CommandOptionType, ComponentType, MessageOptions, SlashCommand, SlashCreator } from 'slash-create';
 
 export default class AboutCommand extends SlashCommand {
-  responses: Record<string, object>
+  responses: Record<string, MessageOptions>
 
   constructor(creator: SlashCreator) {
     super(creator, {
@@ -115,6 +115,7 @@ export default class AboutCommand extends SlashCommand {
         }]
       }
     }
+  }
 
   async run(ctx: CommandContext) {
       const command = ctx.subcommands[0];
