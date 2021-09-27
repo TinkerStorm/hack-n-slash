@@ -1,7 +1,7 @@
 import { ApplicationCommandType, ButtonStyle, CommandContext, CommandOptionType, ComponentType, SlashCommand, SlashCreator } from 'slash-create';
 
 export default class AboutCommand extends SlashCommand {
-  responses: Record<string, object>;
+  responses: Record<string, object>
 
   constructor(creator: SlashCreator) {
     super(creator, {
@@ -71,20 +71,20 @@ export default class AboutCommand extends SlashCommand {
             ":satellite_orbital: [channel-backup (npm)](https://npm.im/channel-backup)",
             ":pencil: [discord-markdown-syntax](https://github.com/TinkerStorm/discord-markdown-syntax)",
             ":passport_control: [access-groups (action)](https://github.com/sudojunior/access-groups)"
-          ].join('\n'),
+          ].join('\n')
+        }],
+        components: [{
+          type: ComponentType.ACTION_ROW,
           components: [{
-            type: ComponentType.ACTION_ROW,
-            components: [{
-              type: ComponentType.BUTTON,
-              label: "Discord",
-              url: "https://discord.gg/Bb3JQQG",
-              style: ButtonStyle.LINK
-            }, {
-              type: ComponentType.BUTTON,
-              label: "GitHub",
-              url: "https://github.com/TinkerStorm",
-              style: ButtonStyle.LINK
-            }]
+            type: ComponentType.BUTTON,
+            label: "Discord",
+            url: "https://discord.gg/Bb3JQQG",
+            style: ButtonStyle.LINK
+          }, {
+            type: ComponentType.BUTTON,
+            label: "GitHub",
+            url: "https://github.com/TinkerStorm",
+            style: ButtonStyle.LINK
           }]
         }]
       },
@@ -115,22 +115,21 @@ export default class AboutCommand extends SlashCommand {
         }]
       }
     }
-  }
 
   async run(ctx: CommandContext) {
-    const command = ctx.subcommands[0];
+      const command = ctx.subcommands[0];
 
-    if (!this.responses[command]) {
-      await ctx.send({
-        content: 'I don\'t know what you mean.'
-      });
-      return;
-    }
+      if (!this.responses[command]) {
+        await ctx.send({
+          content: 'I don\'t know what you mean.'
+        });
+        return;
+      }
 
-    try {
-      return ctx.send(this.responses[command]);
-    } catch (e) {
-      return ctx.send(`❌ An error occured...\n\`\`\`${e}\`\`\``);
+      try {
+        return ctx.send(this.responses[command]);
+      } catch (e) {
+        return ctx.send(`❌ An error occured...\n\`\`\`${e}\`\`\``);
+      }
     }
   }
-}
