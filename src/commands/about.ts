@@ -1,7 +1,7 @@
 import { ApplicationCommandType, ButtonStyle, CommandContext, CommandOptionType, ComponentType, SlashCommand, SlashCreator } from 'slash-create';
 
 export default class AboutCommand extends SlashCommand {
-  responses: Record<string, string | object>;
+  responses: Record<string, object>;
 
   constructor(creator: SlashCreator) {
     super(creator, {
@@ -30,30 +30,30 @@ export default class AboutCommand extends SlashCommand {
           description: [
             "A bot to manage custom slash commands in a guild, with autocompletion to help manage commands and templating with [Tempura](https://github.com/lukeed/tempura).",
             "My responses are stored in a database, and can be edited and deleted by anyone with the `Manage Server` permission."
-          ].join(' '),
+          ].join(' ')
+        }],
+        components: [{
+          type: ComponentType.ACTION_ROW,
           components: [{
-            type: ComponentType.ACTION_ROW,
-            components: [{
-              type: ComponentType.BUTTON,
-              label: "Invite",
-              url: "https://discord.com/api/oauth2/authorize?client_id=891363778808152125&permissions=0&scope=bot%20applications.commands",
-              style: ButtonStyle.LINK
-            }, {
-              type: ComponentType.BUTTON,
-              label: "GitHub",
-              url: "https://github.com/sudojunior/hack-n-slash",
-              style: ButtonStyle.LINK
-            }, {
-              type: ComponentType.BUTTON,
-              label: "Support Server",
-              url: "https://discord.gg/Bb3JQQG",
-              style: ButtonStyle.LINK
-            }, {
-              type: ComponentType.BUTTON,
-              label: "Sponsor",
-              url: "https://github.com/sponsors/sudojunior",
-              style: ButtonStyle.LINK
-            }]
+            type: ComponentType.BUTTON,
+            label: "Invite",
+            url: "https://discord.com/api/oauth2/authorize?client_id=891363778808152125&permissions=0&scope=bot%20applications.commands",
+            style: ButtonStyle.LINK
+          }, {
+            type: ComponentType.BUTTON,
+            label: "GitHub",
+            url: "https://github.com/sudojunior/hack-n-slash",
+            style: ButtonStyle.LINK
+          }, {
+            type: ComponentType.BUTTON,
+            label: "Support Server",
+            url: "https://discord.gg/Bb3JQQG",
+            style: ButtonStyle.LINK
+          }, {
+            type: ComponentType.BUTTON,
+            label: "Sponsor",
+            url: "https://github.com/sponsors/sudojunior",
+            style: ButtonStyle.LINK
           }]
         }]
       },
@@ -129,8 +129,8 @@ export default class AboutCommand extends SlashCommand {
 
     try {
       return ctx.send(this.responses[command]);
-    } catch(e) {
-      return ctx.send(`❌ An error occured...\n\`\`\`${error}\`\`\``);
+    } catch (e) {
+      return ctx.send(`❌ An error occured...\n\`\`\`${e}\`\`\``);
     }
   }
 }
