@@ -25,7 +25,6 @@ export default class AboutCommand extends SlashCommand {
 
     this.responses = {
       me: {
-        content: 'I am a bot that can help you with your daily tasks. I can help you with your tasks, and I can help you with your tasks.',
         embeds: [{
           title: "What is Hack n' Slash?",
           description: [
@@ -103,7 +102,7 @@ export default class AboutCommand extends SlashCommand {
             "- Message Embeds",
             "- Custom Blocks",
             "- Cooldowns"
-          ]
+          ].join('\n')
         }],
         components: [{
           type: ComponentType.ACTION_ROW,
@@ -128,6 +127,10 @@ export default class AboutCommand extends SlashCommand {
       return;
     }
 
-    return ctx.send(this.responses[command]);
+    try {
+      return ctx.send(this.responses[command]);
+    } catch(e) {
+      return ctx.send(`❌ An error occured...\n\`\`\`${error}\`\`\``);
+    }
   }
 }
