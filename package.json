@@ -1,7 +1,7 @@
 {
   "name": "hack-n-slash",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "./dist/app.js",
   "license": "MIT",
   "private": true,
   "scripts": {

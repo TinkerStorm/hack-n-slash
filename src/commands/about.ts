@@ -31,7 +31,7 @@ export default class AboutCommand extends SlashCommand {
           description: [
             "A bot to manage custom slash commands in a guild, with autocompletion to help manage commands and templating with [Tempura](https://github.com/lukeed/tempura).",
             "My responses are stored in a database, and can be edited and deleted by anyone with the `Manage Server` permission."
-          ],
+          ].join(' '),
           components: [{
             type: ComponentType.ACTION_ROW,
             components: [{
