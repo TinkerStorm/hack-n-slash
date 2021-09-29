@@ -20,7 +20,7 @@ All I ask is that you follow the given [LICENSE](./LICENSE).
 
 ## Context (Incomplete listing)
 
-> [Full list of data available in the context](https://github.com/sudojunior/hack-n-slash/blob/main/src/util/template-engine.ts#L64-82)
+> [Full list of data available in the context](https://github.com/sudojunior/hack-n-slash/blob/main/src/app.ts#L65-L83)
 
 - `...data`: 
 - [`interactionID`](https://slash-create.js.org/#/docs/main/latest/class/CommandContext?scrollTo=interactionID): The ID of the interaction.
