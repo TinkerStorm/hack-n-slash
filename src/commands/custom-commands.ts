@@ -160,13 +160,9 @@ export default class CustomCommandManager extends Command {
     // ensure that the command doesn't already exist
     try {
       const command = await this.service.findByName(ctx.guildID!, name);
-      if (command) {
-        throw [
-          `\`${name}\` already exists!`,
-          `> Existing type: \`${command.type}\``,
-          `> Requested type: \`${type}\``
-          // does not check per type *yet*...
-        ].join("\n");
+      if (command && command.type === type) {
+        ctx.send(`\`${name}\` of **${humanizedCommandTypes[type]}** already exists!`);
+        return;
       }
     } catch (_e) { }
 
