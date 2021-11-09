@@ -15,7 +15,7 @@
     "ramda": "^0.27.1",
     "redis": "^3.1.2",
     "slash-create": "^4.2.0",
-    "tempura": "^0.3.2"
+    "tempura": "^0.4.0"
   },
   "devDependencies": {
     "@types/node": "^16.9.6",
